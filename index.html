@@ -1,0 +1,229 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <!-- Important for screen size responsiveness! -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Cursed Formatting</title><style type="text/css">
+* {
+    font-family: monospace;
+}
+
+html, .full-h {
+    height: 100%;
+}
+
+body{
+    margin: 0 0;
+    line-height:1.6;
+    font-size:18px;
+    color:#eee;
+    background-color:#111;
+    padding: 0 10px;
+}
+
+/* container */
+.responsive-two-column-grid {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr;
+}
+
+.input-wrapper {
+    margin: 0 10px;
+}
+.output-wrapper {
+    margin: 0 10px;
+    border: 1px solid #888;
+}
+
+#input, #output {
+    color:#eee;
+    background-color:#111;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#output {
+    display: block;
+    white-space: pre;
+}
+
+/* tablet breakpoint */
+@media (min-width:768px) {
+    .responsive-two-column-grid {
+        display: grid;
+        grid-template-rows: 1fr;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style></head>
+<body class="full-h">
+<div class="responsive-two-column-grid full-h">
+    <div class="input-wrapper full-h">
+        <form id="settings">
+          <legend>Select a language:</legend>
+
+          <div>
+            <input type="radio" id="c-cpp" name="language" value="c-cpp" checked />
+            <label for="c-cpp">C/C++</label>
+          </div>
+
+          <div>
+            <input type="radio" id="c-sharp" name="language" value="c-sharp" />
+            <label for="c-sharp">C#</label>
+          </div>
+
+          <div>
+            <input type="radio" id="java" name="language" value="java" />
+            <label for="java">Java</label>
+          </div>
+
+          <div>
+            <input type="radio" id="javascript" name="language" value="javascript" />
+            <label for="javascript">Javascript</label>
+          </div>
+          
+          <div>
+            <input type="radio" id="json" name="language" value="json" />
+            <label for="json">JSON</label>
+          </div>
+          
+          <div>
+            <input type="radio" id="objective-c" name="language" value="objective-c" />
+            <label for="json">Objective C</label>
+          </div>
+          
+          <div>
+            <input type="radio" id="proto" name="language" value="proto" />
+            <label for="proto">Proto</label>
+          </div>
+          
+          <div>
+            <input type="radio" id="tablegen" name="language" value="tablegen" />
+            <label for="tablegen">TableGen</label>
+          </div>
+          
+          <div>
+            <input type="radio" id="textproto" name="language" value="textproto" />
+            <label for="textproto">TextProto</label>
+          </div>
+
+          <div>
+            <input type="radio" id="verilog" name="language" value="verilog" />
+            <label for="verilog">Verilog</label>
+          </div>
+
+        </form>
+        <button id="input-copy-button">📋</button>
+        <textarea id="input" placeholder=""></textarea>
+    </div>
+    <div class="output-wrapper full-h">
+        <button id="output-copy-button">📋</button>
+        <output id="output"></output>
+    </div>
+</div>
+
+</body>
+
+<script type="module">
+
+import init, { format } from "./clang-format.js";
+
+await init();
+
+// JSON representation of Clang-Format Style Options
+const config = JSON.stringify({
+  BasedOnStyle: "Chromium",
+  IndentWidth: 4,
+  ColumnLimit: 80,
+});
+
+const settings = document.getElementById("settings");
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+
+const update = () => {
+    let extension;
+    switch (settings.elements.language.value) {
+        default:
+        case "c-cpp":
+            extension = "cc";
+        break
+        case "c-sharp":
+            extension = "cs";
+        break
+        case "java":
+            extension = "java";
+        break
+        case "javascript":
+            extension = "js";
+        break
+        case "json":
+            extension = "json";
+        break
+        case "objective-c":
+            extension = "m";
+        break
+        case "proto":
+            extension = "proto";
+        break
+        case "tablegen":
+            extension = "td";
+        break
+        case "textproto":
+            extension = "txtpb";
+        break
+        case "verilog":
+            extension = "sv";
+        break
+    }
+
+    const formatted = format(
+        input.value,
+        "main." + extension,
+        config,
+    );
+    
+    // TODO modify string to cursed format
+    const cursed = formatted;
+    
+    output.value = cursed;
+}
+
+settings.onchange = update;
+input.oninput = update;
+
+async function writeClipboardText(text) {
+try {
+  await navigator.clipboard.writeText(text);
+} catch (error) {
+  console.error(error.message);
+}
+}
+
+const setupClipboardButton = (id, getTextFn) => {
+    const copyButton = document.getElementById(id);
+    copyButton.addEventListener("click", () => {
+        writeClipboardText(getTextFn()).then(() => {
+          copyButton.disabled = true;
+          copyButton.innerText = "✅";
+          setTimeout(
+            () => {
+              copyButton.innerText = "📋";
+              copyButton.disabled = false;
+            },
+            16 * 30
+          )
+        });
+    });
+}
+
+setupClipboardButton("input-copy-button", () => input.value);
+setupClipboardButton("output-copy-button", () => output.value);
+
+</script>
+
+</html>
