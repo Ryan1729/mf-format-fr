@@ -85,27 +85,27 @@ body{
             <input type="radio" id="javascript" name="language" value="javascript" />
             <label for="javascript">Javascript</label>
           </div>
-          
+
           <div>
             <input type="radio" id="json" name="language" value="json" />
             <label for="json">JSON</label>
           </div>
-          
+
           <div>
             <input type="radio" id="objective-c" name="language" value="objective-c" />
             <label for="json">Objective C</label>
           </div>
-          
+
           <div>
             <input type="radio" id="proto" name="language" value="proto" />
             <label for="proto">Proto</label>
           </div>
-          
+
           <div>
             <input type="radio" id="tablegen" name="language" value="tablegen" />
             <label for="tablegen">TableGen</label>
           </div>
-          
+
           <div>
             <input type="radio" id="textproto" name="language" value="textproto" />
             <label for="textproto">TextProto</label>
@@ -134,16 +134,44 @@ import init, { format } from "./clang-format.js";
 
 await init();
 
+const COLUMN_COUNT = 80;
+
 // JSON representation of Clang-Format Style Options
 const config = JSON.stringify({
   BasedOnStyle: "Chromium",
   IndentWidth: 4,
-  ColumnLimit: 80,
+  ColumnLimit: COLUMN_COUNT,
+  BreakBeforeBraces: "Custom",
+  BraceWrapping: {
+    AfterCaseLabel: true,
+    AfterClass: true,
+    AfterControlStatement: true,
+    AfterEnum: true,
+    AfterFunction: true,
+    AfterNamespace : true,
+    AfterObjCDeclaration: true,
+    AfterStruct: true,
+    AfterUnion: true,
+    AfterExternBlock: true,
+    BeforeCatch: true,
+    BeforeElse: true,
+    BeforeLambdaBody: true,
+    BeforeWhile: true,
+    IndentBraces: true,
+    SplitEmptyFunction: true,
+    SplitEmptyRecord: true,
+    SplitEmptyNamespace: true,
+  }
 });
 
 const settings = document.getElementById("settings");
 const input = document.getElementById("input");
 const output = document.getElementById("output");
+
+const justLeftBraces = /^\s*\{+\s*$/;
+const justRightBraces = /^\s*\}+\s*$/;
+const whitespaceAndSpecialEndings = /[\s\{\};]/;
+const trailingWhitespaceAndSpecialEndings = /\s*[\{\};]\s*/g;
 
 const update = () => {
     let extension;
@@ -186,10 +214,49 @@ const update = () => {
         "main." + extension,
         config,
     );
-    
-    // TODO modify string to cursed format
-    const cursed = formatted;
-    
+
+    // TODO modify lines to cursed format
+    let lines = formatted.split("\n");
+
+    for (let lineIndex = lines.length - 1; lineIndex >= 0; lineIndex -= 1) {
+        let line = lines[lineIndex];
+
+        // Move lone left braces to previous line
+        if (lineIndex > 0 && line.match(justLeftBraces) !== null) {
+            lines.splice(lineIndex, 1);
+            lines[lineIndex - 1] += "{";
+            continue
+        }
+
+        // Move lone right braces to previous line
+        if (lineIndex > 0 && line.match(justRightBraces) !== null) {
+            lines.splice(lineIndex, 1);
+            lines[lineIndex - 1] += "}";
+            continue
+        }
+
+        // Remove trailing whitespace and whitespace between any of the
+        // special ending characters
+        const matches = Array.from(line.matchAll(trailingWhitespaceAndSpecialEndings))
+
+        if (matches.length > 0) {
+            let endOfPrefix = line.length - 1;
+            for (let i = line.length - 1; i >= 0; i -= 1) {
+                if (line[i].match(whitespaceAndSpecialEndings) === null) {
+                    // Found something we want to leave alone.
+                    break
+                }
+                endOfPrefix = i;
+            }
+
+            line = line.substring(0, endOfPrefix) + " ".repeat(COLUMN_COUNT - endOfPrefix) + matches.map(arr => arr.map(s => s.trim())).join("")
+        }
+
+        lines[lineIndex] = line
+    }
+
+    const cursed = lines.join("\n");
+
     output.value = cursed;
 }
 
