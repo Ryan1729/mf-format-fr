@@ -1,6 +1,6 @@
-# cursed-formatting
+# mf-format-fr
 
-A little website that allows formatting code in a *cursed* manner.
+Deadass, a little website that be formatting code in a bussin' way, no cap.
 
 ----
 

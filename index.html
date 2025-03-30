@@ -5,7 +5,7 @@
     <!-- Important for screen size responsiveness! -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <title>Cursed Formatting</title><style type="text/css">
+    <title>mf format fr</title><style type="text/css">
 * {
     font-family: monospace;
 }
@@ -64,57 +64,17 @@ body{
 <div class="responsive-two-column-grid full-h">
     <div class="input-wrapper full-h">
         <form id="settings">
-          <legend>Select a language:</legend>
+          <legend>Select a mode:</legend>
 
           <div>
-            <input type="radio" id="c-cpp" name="language" value="c-cpp" checked />
-            <label for="c-cpp">C/C++</label>
+            <input type="radio" id="mf-fr" name="mode" value="mf-fr" checked />
+            <label for="mf-fr">mf fr</label>
           </div>
 
           <div>
-            <input type="radio" id="c-sharp" name="language" value="c-sharp" />
-            <label for="c-sharp">C#</label>
-          </div>
-
-          <div>
-            <input type="radio" id="java" name="language" value="java" />
-            <label for="java">Java</label>
-          </div>
-
-          <div>
-            <input type="radio" id="javascript" name="language" value="javascript" />
-            <label for="javascript">Javascript</label>
-          </div>
-
-          <div>
-            <input type="radio" id="json" name="language" value="json" />
-            <label for="json">JSON</label>
-          </div>
-
-          <div>
-            <input type="radio" id="objective-c" name="language" value="objective-c" />
-            <label for="json">Objective C</label>
-          </div>
-
-          <div>
-            <input type="radio" id="proto" name="language" value="proto" />
-            <label for="proto">Proto</label>
-          </div>
-
-          <div>
-            <input type="radio" id="tablegen" name="language" value="tablegen" />
-            <label for="tablegen">TableGen</label>
-          </div>
-
-          <div>
-            <input type="radio" id="textproto" name="language" value="textproto" />
-            <label for="textproto">TextProto</label>
-          </div>
-
-          <div>
-            <input type="radio" id="verilog" name="language" value="verilog" />
-            <label for="verilog">Verilog</label>
-          </div>
+            <input type="radio" id="mf-fr-no-defines" name="mode" value="mf-fr-no-defines" />
+            <label for="mf-fr-no-defines">mf fr no defines</label>
+          </div>          
 
         </form>
         <button id="input-copy-button">📋</button>
@@ -141,71 +101,61 @@ const config = JSON.stringify({
   BasedOnStyle: "Chromium",
   IndentWidth: 4,
   ColumnLimit: COLUMN_COUNT,
-  BreakBeforeBraces: "Custom",
-  BraceWrapping: {
-    AfterCaseLabel: true,
-    AfterClass: true,
-    AfterControlStatement: true,
-    AfterEnum: true,
-    AfterFunction: true,
-    AfterNamespace : true,
-    AfterObjCDeclaration: true,
-    AfterStruct: true,
-    AfterUnion: true,
-    AfterExternBlock: true,
-    BeforeCatch: true,
-    BeforeElse: true,
-    BeforeLambdaBody: true,
-    BeforeWhile: true,
-    IndentBraces: true,
-    SplitEmptyFunction: true,
-    SplitEmptyRecord: true,
-    SplitEmptyNamespace: true,
-  }
 });
 
 const settings = document.getElementById("settings");
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 
-const justLeftBraces = /^\s*\{+\s*$/;
-const justRightBraces = /^\s*\}+\s*$/;
-const whitespaceAndSpecialEndings = /[\s\{\};]/;
-const trailingWhitespaceAndSpecialEndings = /\s*[\{\};]\s*/g;
+const REPLACEMENTS = [
+    ["main", "chief"],
+    ["return", "yeet"],
+    ["if", "sussin"],
+    ["for", "bussin"],
+    ["while", "tweakin"],
+    ["std", "vibin"],
+    ["endl", "yikes"],
+    ["cout", "ongod"],
+    ["<<", "fr"],
+    [">>", "deadass"],
+    [";", " rn"],
+    ["int", "mf"],
+    ["0", "cap"],
+    // == -> finna first, so we don't end up with  "bebe"
+    ["==", "finna"],
+    ["=", "be"],
+    ["!", "no"],
+    ["++", "bouta"],
+];
 
 const update = () => {
-    let extension;
-    switch (settings.elements.language.value) {
+    let extension = "cc";
+    let prefix = "";
+    switch (settings.elements.mode.value) {
         default:
-        case "c-cpp":
-            extension = "cc";
+        case "mf-fr-no-defines":
+            // leave blank
         break
-        case "c-sharp":
-            extension = "cs";
-        break
-        case "java":
-            extension = "java";
-        break
-        case "javascript":
-            extension = "js";
-        break
-        case "json":
-            extension = "json";
-        break
-        case "objective-c":
-            extension = "m";
-        break
-        case "proto":
-            extension = "proto";
-        break
-        case "tablegen":
-            extension = "td";
-        break
-        case "textproto":
-            extension = "txtpb";
-        break
-        case "verilog":
-            extension = "sv";
+        case "mf-fr":
+            prefix = `#define chief main
+#define yeet return
+#define sussin if
+#define bussin for
+#define tweakin while
+#define vibin std
+#define yikes endl
+#define ongod cout
+#define fr <<
+#define deadass >>
+#define rn ;
+#define mf int
+#define cap 0
+#define be =
+#define finna ==
+#define no !
+#define bouta ++
+
+`;
         break
     }
 
@@ -215,49 +165,12 @@ const update = () => {
         config,
     );
 
-    // TODO modify lines to cursed format
-    let lines = formatted.split("\n");
-
-    for (let lineIndex = lines.length - 1; lineIndex >= 0; lineIndex -= 1) {
-        let line = lines[lineIndex];
-
-        // Move lone left braces to previous line
-        if (lineIndex > 0 && line.match(justLeftBraces) !== null) {
-            lines.splice(lineIndex, 1);
-            lines[lineIndex - 1] += "{";
-            continue
-        }
-
-        // Move lone right braces to previous line
-        if (lineIndex > 0 && line.match(justRightBraces) !== null) {
-            lines.splice(lineIndex, 1);
-            lines[lineIndex - 1] += "}";
-            continue
-        }
-
-        // Remove trailing whitespace and whitespace between any of the
-        // special ending characters
-        const matches = Array.from(line.matchAll(trailingWhitespaceAndSpecialEndings))
-
-        if (matches.length > 0) {
-            let endOfPrefix = line.length - 1;
-            for (let i = line.length - 1; i >= 0; i -= 1) {
-                if (line[i].match(whitespaceAndSpecialEndings) === null) {
-                    // Found something we want to leave alone.
-                    break
-                }
-                endOfPrefix = i;
-            }
-
-            line = line.substring(0, endOfPrefix) + " ".repeat(COLUMN_COUNT - endOfPrefix) + matches.map(arr => arr.map(s => s.trim())).join("")
-        }
-
-        lines[lineIndex] = line
+    let replaced = formatted;
+    for (const [pattern, replacement] of REPLACEMENTS) {
+        replaced = replaced.replaceAll(pattern, replacement)
     }
 
-    const cursed = lines.join("\n");
-
-    output.value = cursed;
+    output.value = prefix + replaced;
 }
 
 settings.onchange = update;
